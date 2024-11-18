@@ -1,0 +1,91 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: cinvestav
+// Engineer: Martha Guadalupe Macías Martínez
+// 
+// Create Date: 17.11.2024 09:16:32
+// Design Name: Maquina de estados
+// Module Name: Semaforo
+// Project Name: Semaforo_tb
+// Target Devices: ALTERA
+// Tool Versions: ~~~
+// Description: This design simulate a traffic ligth through some variables
+// part of the function is to have a maintance function where the people can 
+// use the light the manual way. 
+// Dependencies: ~~~
+// 
+// Revision:0
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module semaforo #(parameter width=2, t=1)(
+    input logic [width-1:0] sel,//seleccion de led encendido
+    input logic clk,//variable de reloj para control del tiempo
+    input logic bm,r,y,g,              //bit to in to maintance function
+    output logic [width-1:0] red, //the light trafic
+    output logic[width-1:0] yellow,
+    output logic [width-1:0] green
+    );    
+//inicializando leds
+assign red =2'b00;
+assign green =2'b00;
+assign yellow =2'b00;
+//funciones para encender leds
+always @(sel)begin
+//se encenderan los leds cada 3 cambios del contador  
+        case (sel)
+            2'b00: begin//encender led rojo
+                repeat (t) begin
+                red = 2'b11;
+                yellow = 2'b00;
+                green =2'b00;
+                if (bm==1)begin //condición para evaluar bm dentro del encendido de los leds
+                    maintance(r,y,g,red, yellow, green);
+                end
+               end
+             end
+            2'b01: begin //encender led verde
+                repeat (t) begin
+                red = 2'b00;
+                yellow = 2'b00;
+                green =2'b11;
+                if (bm==1)begin //condición para evaluar bm dentro del encendido de los leds
+                    maintance(r,y,g,red, yellow, green);
+                end
+              end
+            end 
+            2'b10: begin //encender led amarillo
+                repeat (t) begin
+                red = 2'b00;
+                yellow = 2'b11;
+                green =2'b00;
+                if (bm==1)begin //condici+on para evaluar bm dentro del encendido de los leds
+                    maintance(r,y,g,red, yellow, green);
+                end
+               end
+             end
+            default: begin //entrar modo de mantenimiento
+                maintance(r,y,g,red, yellow,green);                 
+            end
+        endcase 
+     end 
+//tarea de mantenimiento
+task maintance;
+    //input bm;
+    input logic r;//entradas para manejar las luces de manera automatica
+    input logic y;
+    input logic g;
+    output logic [1:0] red;//declaración de leds
+    output logic [1:0] yellow;
+    output logic [1:0] green;
+    begin
+    //condición ternaria para que se manejen los led
+         red =(r==1) ? 2'b11:2'b00;
+         yellow =(y==1) ? 2'b11:2'b00;
+         green =(g==1) ? 2'b11:2'b00;
+    end 
+  endtask
+endmodule
