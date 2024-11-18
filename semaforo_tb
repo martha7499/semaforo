@@ -1,0 +1,213 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: cinvestav
+// Engineer: Martha Guadalupe Macías Martínez
+// 
+// Create Date: 17.11.2024 13:13:03
+// Design Name: Maquina de estados
+// Module Name: Semaforo
+// Project Name: Semaforo_tb
+// Target Devices: ALTERA
+// Tool Versions: ~~~ 
+// Description: This is the test bench about the semáforo, this program include the one interface and some function to cover in it. 
+// 
+// Dependencies: ~~~
+// 
+// Revision:0
+// Revision 0.01 - File Created
+// Additional Comments:~~~
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module semaforo_tb;
+  parameter maintance_width = 2; //asignacion de la variable maintance_width
+  parameter maintance_t=1;
+  into_maintance#(maintance_width, maintance_t) into_maintance_i(); // Creamos la instancia de la interface
+  bit clk;//generamos la señal de reloj
+  always #1 clk = !clk;
+  
+  semaforo #(maintance_width, maintance_t) dut (
+    .sel(into_maintance_i.sel),
+    .clk(into_maintance_i.clk), //variable de reloj para control del tiempo
+    .bm(into_maintance_i.bm),
+    .r(into_maintance_i.r),
+    .y(into_maintance_i.y), 
+    .g(into_maintance_i.g), 
+    .red(into_maintance_i.red),         
+    .green(into_maintance_i.green),
+    .yellow(into_maintance_i.yellow)
+  );
+ /*
+  int i=0;
+  always @(posedge clk) begin
+    i=i+1; //contador para asiganacion de luz encedida
+    if (i==1) begin
+        into_maintance_i.sel=2'b00;
+        assert(into_maintance_i.red==2'b11);
+    end  
+    else if(i==4) begin
+        into_maintance_i.sel=2'b01;
+        assert(into_maintance_i.green==2'b11);
+        end 
+    else if (i==7) begin
+        into_maintance_i.sel=2'b10;
+        assert(into_maintance_i.yellow==2'b11);
+        end
+    else if (i==10) begin 
+        i=0;
+        $finish;
+    end
+  end
+  always @(i)begin
+    $display("LEDS ENCENDIDOS");
+    $display("red: %b green: %b yellow: %b",into_maintance_i.red, into_maintance_i.green, into_maintance_i.yellow);
+    $display("SEL: %b",into_maintance_i.sel);
+  end 
+ */
+// `define test1
+ `define test2
+//  `define test3
+//  `define test4
+//  `define test5
+//  `define test6
+  // assertion en testeo
+  assert property (@(posedge clk) (into_maintance_i.r==1) |-> into_maintance_i.red==2'b11);
+  assert property (@(posedge clk) (into_maintance_i.g==1) |-> into_maintance_i.green==2'b11);
+  assert property (@(posedge clk) (into_maintance_i.y==1) |-> into_maintance_i.yellow==2'b11);
+  `ifdef test1
+  //pruea 1
+  ///////////////////////////////////////////////
+  //  1. enciende la luz roja y verde 5 veces  //
+  //////////////////////////////////////////////
+    initial begin
+        repeat (5) begin
+        into_maintance_i.r_on_g_on();
+        @(posedge clk);
+        end 
+       // $finish;
+    end
+  `endif
+  `ifdef test2
+  //pruea 2
+  /////////////////////////////////////////////////
+  //  1. enciende la luz roja y amarilla 5 veces //
+  ////////////////////////////////////////////////
+    initial begin
+        repeat (5) begin
+        into_maintance_i.r_on_y_on();
+        @(posedge clk);
+        end
+        $finish;
+    end
+  `endif 
+  `ifdef test3
+    //pruea 3
+  /////////////////////////////////////////////////
+  //  1. enciende la luz amarrilla y verde 5 veces //
+  ////////////////////////////////////////////////
+    initial begin
+        repeat (5) begin
+        into_maintance_i.y_on_g_on();
+        @(posedge clk);
+        end
+        $finish;
+    end
+  `endif
+  `ifdef test4
+    //pruea 4
+  /////////////////////////////////////////////////
+  //  1. enciende la luz roja                    //
+  ////////////////////////////////////////////////
+    initial begin
+        into_maintance_i.r_on();
+        @(posedge clk);
+    end
+  `endif
+ `ifdef test5
+   //pruea 5
+  /////////////////////////////////////////////////
+  //  1. enciende la luz verde                  //
+  ////////////////////////////////////////////////
+    initial begin
+        into_maintance_i.g_on();
+        @(posedge clk);
+    end
+  `endif
+   `ifdef test6
+     //pruea 6
+  /////////////////////////////////////////////////
+  //  1. enciende la luz amarilla               //
+  ////////////////////////////////////////////////
+    initial begin
+        into_maintance_i.y_on();
+        @(posedge clk);
+    end
+  `endif
+  
+  //expresion para imprimir el test
+  always @(posedge clk) begin
+        $display("MODO MANTENIMIENTO");
+        $display("red: %b green: %b yellow: %b",into_maintance_i.red, into_maintance_i.green, into_maintance_i.yellow);
+        $display("SEL: %b, BM: %b",into_maintance_i.sel, into_maintance_i.bm);
+  end
+
+  
+endmodule : semaforo_tb
+
+interface into_maintance#(parameter width=2, t=1)();
+    //logic clk; //variable de reloj para control del tiempo
+    logic [width-1:0] sel;
+    logic bm; //bit to in to maintance function
+    logic clk;
+    logic r;
+    logic y;
+    logic g;              
+    logic [width-1:0] red; //the light trafic
+    logic[width-1:0] yellow;
+    logic [width-1:0] green;
+    
+    //function to into the maintance
+    function r_on_g_on();
+      sel=2'b11;
+      bm = 1;
+      r = 1;
+      y = 0;
+      g = 1;
+     endfunction
+     function r_on_y_on();
+      sel=2'b11;
+      bm=1;
+      r= 1;
+      y = 1;
+      g = 0;        
+    endfunction
+     function y_on_g_on();
+      sel=2'b11;
+      bm=1;
+      r= 0;
+      y = 1;
+      g = 1;        
+    endfunction
+     function r_on();
+      sel=2'b11;
+      bm=1;
+      r= 1;
+      y = 0;
+      g = 0;        
+    endfunction
+    function g_on();
+      sel=2'b11;
+      bm=1;
+      r= 0;
+      y = 0;
+      g = 1;        
+    endfunction
+    function y_on();
+      sel=2'b11;
+      bm=1;
+      r= 0;
+      y = 1;
+      g = 0;        
+    endfunction
+endinterface
